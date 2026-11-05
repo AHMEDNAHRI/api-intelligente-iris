@@ -1,0 +1,8 @@
+﻿fastapi
+uvicorn
+scikit-learn
+joblib
+pytest
+httpx
+slowapi
+mlflow

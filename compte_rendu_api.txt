@@ -1,0 +1,73 @@
+﻿COMPTE RENDU - CHAPITRE 4 : DEVELOPPEMENT D'APIs INTELLIGENTES
+Projet : API_Intelligente (FastAPI + modele Iris)
+
+1. IDEE DU PROJET
+J'ai entraine un modele RandomForest (100 arbres) sur le dataset Iris,
+je l'ai sauvegarde dans iris_model.pkl avec joblib, puis je l'ai expose
+via une API REST FastAPI. L'API est documentee (/docs) et testee (pytest).
+
+2. CE QUI A ETE FAIT
+- Creation du dossier, de l'environnement virtuel (venv) et installation
+  des bibliotheques : fastapi, uvicorn, scikit-learn, joblib, pytest,
+  httpx, slowapi.
+- train_model.py : entrainement du modele et sauvegarde iris_model.pkl.
+- main.py (version 2.0) avec les endpoints :
+    GET  /               : message d'accueil
+    GET  /health         : verification que l'API fonctionne
+    POST /predict        : prediction d'une fleur (cle API obligatoire)
+    POST /predict/batch  : prediction de plusieurs fleurs, avec les
+                           probabilites des 3 classes
+    GET  /history        : historique des predictions
+    GET  /admin/stats    : statistiques (reserve au role ADMIN)
+    GET  /limited        : endpoint limite a 5 requetes par minute
+- Validation des donnees avec Pydantic (erreur 422 si donnees invalides).
+- Authentification par cle API (header X-API-Key) : 401 si cle absente
+  ou fausse.
+- Deux roles : USER et ADMIN. Un USER qui appelle /admin/stats recoit 403.
+- Chaque prediction recoit un request_id (uuid) et un timestamp (UTC),
+  et elle est enregistree dans une base SQLite (predictions.db).
+- Rate limiting avec slowapi : 5 requetes/minute, la 6eme donne 429.
+- Tests automatiques (test_api.py) : 9 tests, tous passes
+  (health, prediction ok, sans cle 401, mauvaise cle 401, entree
+  invalide 422, batch avec probabilites, USER interdit 403,
+  ADMIN autorise 200, limite de debit 429).
+
+3. REPONSES AUX QUESTIONS DE CONSOLIDATION
+
+Q1. Difference entre GET et POST ?
+GET sert a LIRE des donnees (les parametres sont dans l'URL, on ne
+modifie rien). POST sert a ENVOYER des donnees / creer / declencher un
+traitement (les donnees sont dans le corps JSON). Pour une prediction
+on utilise POST car on envoie les mesures de la fleur.
+
+Q2. A quoi sert Pydantic dans FastAPI ?
+Pydantic valide automatiquement les donnees recues (types, valeurs
+min/max), convertit les types, genere la documentation /docs et renvoie
+des messages d'erreur clairs sans ecrire de code supplementaire.
+
+Q3. Difference entre authentification et autorisation ?
+Authentification = prouver QUI on est (ex : la cle API).
+Autorisation = ce qu'on a LE DROIT de faire (ex : seul ADMIN peut voir
+/admin/stats). Pas de cle valide -> 401. Cle valide mais pas le droit
+-> 403.
+
+Q4. Difference entre les codes 422 et 429 ?
+422 = les donnees envoyees ne respectent pas le schema attendu
+(ex : sepal_length negatif). 429 = trop de requetes, le quota
+(5 par minute) est depasse.
+
+Q5. Pourquoi versionner une API ?
+Pour pouvoir faire evoluer l'API ou le modele (/api/v1, /api/v2) sans
+casser les applications qui utilisent deja l'ancienne version, et pour
+garder une trace des changements.
+
+Q6. Pourquoi tester avant la mise en production ?
+Pour detecter les bugs, les failles de securite et les problemes de
+performance avant que les vrais utilisateurs les rencontrent. Types de
+tests : unitaires, integration, fonctionnels, securite, performance,
+et test du modele IA.
+
+4. CONCLUSION
+L'API est fonctionnelle, documentee (Swagger /docs), securisee
+(cle API, roles, limite de debit), persistante (SQLite) et testee
+(9 tests pytest passes).
