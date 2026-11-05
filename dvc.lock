@@ -1,0 +1,14 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: python train_model.py
+    deps:
+    - path: train_model.py
+      hash: md5
+      md5: 569e81bd6703744b9a76e70dd67a0c9f
+      size: 305
+    outs:
+    - path: iris_model.pkl
+      hash: md5
+      md5: ba82392f665a39c6d6d5c288a07e6f26
+      size: 186737

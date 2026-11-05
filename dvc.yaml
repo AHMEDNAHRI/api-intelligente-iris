@@ -1,0 +1,7 @@
+stages:
+  train:
+    cmd: python train_model.py
+    deps:
+    - train_model.py
+    outs:
+    - iris_model.pkl

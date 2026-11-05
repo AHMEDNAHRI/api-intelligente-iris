@@ -4,3 +4,4 @@ __pycache__/
 predictions.db
 mlflow.db
 mlruns/
+/iris_model.pkl
